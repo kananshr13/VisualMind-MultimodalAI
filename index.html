@@ -4,375 +4,82 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>VisualMind</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
 <style>
-  :root {
-    --bg:        #f0f6ff;
-    --surface:   #ffffff;
-    --blue-light: #dceeff;
-    --blue-mid:  #b8d9ff;
-    --blue-dark: #4a90d9;
-    --blue-soft: #e8f3ff;
-    --text:      #1a2e4a;
-    --muted:     #6b8aab;
-    --border:    #cce0f5;
-    --user-bg:   #4a90d9;
-    --radius:    18px;
-    --font:      'Plus Jakarta Sans', sans-serif;
-  }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html, body {
-    height: 100%;
-    background: var(--bg);
-    font-family: var(--font);
-    color: var(--text);
-  }
-
-  .app {
-    max-width: 780px;
-    margin: 0 auto;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    padding: 20px 16px 0;
-  }
-
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 4px 16px;
-  }
-
-  .brand { display: flex; align-items: center; gap: 10px; }
-
-  .brand-dot {
-    width: 36px; height: 36px;
-    background: linear-gradient(135deg, #5ba3e8, #2d7dd2);
-    border-radius: 12px;
-    display: grid; place-items: center;
-  }
-
-  .brand-dot svg { width: 18px; height: 18px; fill: white; }
-
-  .brand-name { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
-  .brand-name span { color: var(--blue-dark); }
-
-  .status { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
-  .dot { width: 7px; height: 7px; border-radius: 50%; background: #ccc; }
-  .dot.online { background: #52c87a; }
-  .dot.loading { background: var(--blue-dark); animation: blink 1s infinite; }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
-  .image-panel {
-    background: var(--surface);
-    border: 1.5px dashed var(--blue-mid);
-    border-radius: var(--radius);
-    margin-bottom: 12px;
-    overflow: hidden;
-    position: relative;
-    cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
-    min-height: 90px;
-  }
-
-  .image-panel:hover { border-color: var(--blue-dark); background: var(--blue-soft); }
-  .image-panel.has-image { border-style: solid; border-color: var(--border); cursor: default; }
-  .image-panel.drag-over { border-color: var(--blue-dark); background: var(--blue-soft); }
-
-  .image-panel input[type=file] {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; z-index: 2;
-  }
-  .image-panel.has-image input[type=file] { pointer-events: none; }
-
-  .upload-hint {
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-    padding: 22px; color: var(--muted);
-  }
-
-  .upload-hint svg { width: 22px; height: 22px; opacity: 0.5; flex-shrink: 0; }
-  .upload-hint p { font-size: 13px; }
-  .upload-hint p strong { color: var(--blue-dark); font-weight: 600; }
-
-  .img-row { display: none; align-items: center; gap: 12px; padding: 10px 14px; }
-  .img-row.visible { display: flex; }
-
-  .thumb { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; }
-  .img-info { flex: 1; min-width: 0; }
-  .img-info .name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .img-info .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
-
-  .change-btn {
-    font-size: 11px; color: var(--blue-dark); font-weight: 500;
-    background: var(--blue-soft); border: 1px solid var(--blue-mid);
-    border-radius: 8px; padding: 5px 10px; cursor: pointer;
-    white-space: nowrap; transition: background 0.15s;
-  }
-  .change-btn:hover { background: var(--blue-light); }
-
-  .chips { display: flex; flex-wrap: wrap; gap: 7px; padding: 0 0 10px; }
-
-  .chip {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 100px;
-    padding: 6px 14px;
-    font-size: 12px; color: var(--muted); font-family: var(--font);
-    cursor: pointer;
-    transition: border-color 0.15s, color 0.15s, background 0.15s;
-  }
-  .chip:hover { border-color: var(--blue-dark); color: var(--blue-dark); background: var(--blue-soft); }
-
-  .chat {
-    flex: 1; overflow-y: auto;
-    display: flex; flex-direction: column; gap: 14px;
-    padding: 4px 0 16px; scroll-behavior: smooth;
-  }
-  .chat::-webkit-scrollbar { width: 0; }
-
-  .empty {
-    flex: 1; display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: 10px; color: var(--muted); text-align: center; padding: 32px;
-  }
-
-  .empty-icon {
-    width: 52px; height: 52px; background: var(--blue-light);
-    border-radius: 50%; display: grid; place-items: center;
-  }
-  .empty-icon svg { width: 22px; height: 22px; fill: var(--blue-dark); }
-  .empty p { font-size: 13px; line-height: 1.7; max-width: 240px; }
-  .empty strong { color: var(--text); font-weight: 500; display: block; font-size: 14px; margin-bottom: 3px; }
-
-  .msg { display: flex; gap: 10px; animation: pop 0.2s ease; }
-  @keyframes pop { from { opacity:0; transform:translateY(6px) } to { opacity:1; transform:none } }
-  .msg.user { flex-direction: row-reverse; }
-
-  .av {
-    width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
-    display: grid; place-items: center; font-size: 11px; margin-top: 2px;
-  }
-  .av.bot { background: linear-gradient(135deg, #5ba3e8, #2d7dd2); }
-  .av.bot svg { width: 14px; height: 14px; fill: white; }
-  .av.user { background: var(--blue-light); color: var(--blue-dark); font-weight: 600; }
-
-  .bbl {
-    max-width: 75%; padding: 10px 14px;
-    border-radius: 16px; font-size: 13.5px; line-height: 1.65;
-  }
-  .msg.bot .bbl {
-    background: var(--surface); border: 1px solid var(--border);
-    border-bottom-left-radius: 5px; color: var(--text);
-  }
-  .msg.user .bbl { background: var(--user-bg); color: white; border-bottom-right-radius: 5px; }
-
-  .bbl .thumb-sm {
-    width: 100px; border-radius: 8px; display: block;
-    margin-bottom: 7px; border: 1px solid rgba(255,255,255,0.25);
-  }
-
-  .typing-bbl {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 16px; border-bottom-left-radius: 5px;
-    padding: 12px 16px; display: flex; align-items: center; gap: 4px;
-  }
-  .typing-bbl span {
-    width: 6px; height: 6px; border-radius: 50%; background: var(--blue-mid);
-    animation: bounce 1.2s infinite;
-  }
-  .typing-bbl span:nth-child(2) { animation-delay: 0.18s; }
-  .typing-bbl span:nth-child(3) { animation-delay: 0.36s; }
-  @keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-5px)} }
-
-  .input-row {
-    display: flex; align-items: center; gap: 8px;
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 100px;
-    padding: 6px 6px 6px 18px;
-    margin-bottom: 20px; flex-shrink: 0;
-    transition: border-color 0.2s;
-  }
-  .input-row:focus-within { border-color: var(--blue-dark); }
-
-  #msg {
-    flex: 1; background: none; border: none; outline: none;
-    font-family: var(--font); font-size: 13.5px; color: var(--text);
-    padding: 4px 0; resize: none; max-height: 100px; line-height: 1.5;
-  }
-  #msg::placeholder { color: var(--muted); }
-
-  .send {
-    width: 36px; height: 36px; border-radius: 50%;
-    background: linear-gradient(135deg, #5ba3e8, #2d7dd2);
-    border: none; cursor: pointer; display: grid; place-items: center;
-    transition: opacity 0.2s, transform 0.1s; flex-shrink: 0;
-  }
-  .send svg { width: 14px; height: 14px; fill: white; }
-  .send:hover { opacity: 0.88; transform: scale(1.05); }
-  .send:active { transform: scale(0.95); }
-  .send:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
-
-  .err-txt { color: #d9534f; font-size: 12px; }
+body { font-family: Arial; background:#f4f7fb; margin:0; padding:0; }
+.container { max-width:700px; margin:auto; padding:20px; }
+.chat { margin-top:20px; }
+.msg { margin:10px 0; }
+.user { text-align:right; }
+.bot { text-align:left; }
+button { padding:10px; }
 </style>
 </head>
+
 <body>
-<div class="app">
 
-  <div class="header">
-    <div class="brand">
-      <div class="brand-dot">
-        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14.5h-2v-5H9V9.5h4v7zm-1-9c-.83 0-1.5-.67-1.5-1.5S11.17 4.5 12 4.5s1.5.67 1.5 1.5S12.83 7.5 12 7.5z"/></svg>
-      </div>
-      <span class="brand-name">Visual<span>Mind</span></span>
-    </div>
-    <div class="status">
-      <div class="dot" id="dot"></div>
-      <span id="status-text">connecting…</span>
-    </div>
-  </div>
+<div class="container">
 
-  <div class="image-panel" id="panel">
-    <input type="file" id="file-input" accept="image/*" />
-    <div class="upload-hint" id="hint">
-      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-      <p><strong>Click to upload</strong> or drag an image here</p>
-    </div>
-    <div class="img-row" id="img-row">
-      <img class="thumb" id="thumb" alt="" />
-      <div class="img-info">
-        <div class="name" id="fname"></div>
-        <div class="sub" id="fsize"></div>
-      </div>
-      <div class="change-btn" id="change-btn">Change</div>
-    </div>
-  </div>
+<h2>VisualMind</h2>
 
-  <div class="chips">
-    <div class="chip" onclick="quick('Describe this image')">Describe image</div>
-    <div class="chip" onclick="quick('What objects can you see?')">List objects</div>
-    <div class="chip" onclick="quick('What is the mood of this image?')">Mood</div>
-    <div class="chip" onclick="quick('Are there any people in this image?')">People</div>
-    <div class="chip" onclick="quick('What colors are dominant?')">Colors</div>
-  </div>
+<input type="file" id="file" accept="image/*"><br><br>
 
-  <div class="chat" id="chat">
-    <div class="empty" id="empty">
-      <div class="empty-icon">
-        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-      </div>
-      <p><strong>Ask me about an image</strong>Upload a photo above, then type your question below.</p>
-    </div>
-  </div>
+<input type="text" id="msg" placeholder="Ask something..." style="width:80%">
+<button onclick="sendMsg()">Send</button>
 
-  <div class="input-row">
-    <textarea id="msg" rows="1" placeholder="Ask something about the image…"></textarea>
-    <button class="send" id="send" onclick="sendMsg()">
-      <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-    </button>
-  </div>
+<div class="chat" id="chat"></div>
 
 </div>
+
 <script>
-const API = 'http://localhost:8000';
-let file = null;
 
-async function ping() {
-  const dot = document.getElementById('dot');
-  const txt = document.getElementById('status-text');
-  try {
-    const r = await fetch(`${API}/health`, { signal: AbortSignal.timeout(3000) });
-    if (r.ok) { dot.className = 'dot online'; txt.textContent = 'Ready'; }
-    else throw 0;
-  } catch { dot.className = 'dot'; txt.textContent = 'Offline'; }
-}
-ping(); setInterval(ping, 10000);
+const API = ""; // ✅ FIXED (IMPORTANT)
 
-const panel = document.getElementById('panel');
-const fileInput = document.getElementById('file-input');
+let selectedFile = null;
 
-fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
-panel.addEventListener('dragover', e => { e.preventDefault(); panel.classList.add('drag-over'); });
-panel.addEventListener('dragleave', () => panel.classList.remove('drag-over'));
-panel.addEventListener('drop', e => { e.preventDefault(); panel.classList.remove('drag-over'); handleFile(e.dataTransfer.files[0]); });
-document.getElementById('change-btn').addEventListener('click', () => {
-  panel.classList.remove('has-image');
-  fileInput.style.pointerEvents = '';
-  fileInput.click();
+document.getElementById("file").addEventListener("change", (e)=>{
+  selectedFile = e.target.files[0];
 });
-
-function handleFile(f) {
-  if (!f || !f.type.startsWith('image/')) return;
-  file = f;
-  document.getElementById('thumb').src = URL.createObjectURL(f);
-  document.getElementById('fname').textContent = f.name;
-  document.getElementById('fsize').textContent = (f.size/1024).toFixed(0) + ' KB';
-  document.getElementById('hint').style.display = 'none';
-  document.getElementById('img-row').classList.add('visible');
-  panel.classList.add('has-image');
-}
-
-const chat = document.getElementById('chat');
-const msgIn = document.getElementById('msg');
-const sendBtn = document.getElementById('send');
-
-msgIn.addEventListener('input', () => {
-  msgIn.style.height = 'auto';
-  msgIn.style.height = Math.min(msgIn.scrollHeight, 100) + 'px';
-});
-msgIn.addEventListener('keydown', e => { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } });
-
-function quick(t) { msgIn.value = t; sendMsg(); }
 
 async function sendMsg() {
-  const text = msgIn.value.trim();
-  if (!text) return;
-  if (!file) { addBot('Please upload an image first.'); return; }
-  msgIn.value = ''; msgIn.style.height = 'auto';
-  sendBtn.disabled = true;
-  document.getElementById('empty').style.display = 'none';
-  addUser(text, file);
-  const tid = addTyping();
+  const text = document.getElementById("msg").value;
+
+  if (!selectedFile) {
+    alert("Upload image first");
+    return;
+  }
+
+  addMessage(text, "user");
+
+  const formData = new FormData();
+  formData.append("file", selectedFile);
+  formData.append("message", text);
+
   try {
-    const form = new FormData();
-    form.append('file', file);
-    form.append('message', text);
-    const r = await fetch(`${API}/chat`, { method:'POST', body:form });
-    const data = await r.json();
-    removeTyping(tid);
-    addBot(data.response || `<span class="err-txt">Error: ${data.error}</span>`);
-  } catch {
-    removeTyping(tid);
-    addBot(`<span class="err-txt">Backend not reachable at ${API}.</span>`);
-  } finally { sendBtn.disabled = false; }
+    const res = await fetch(`${API}/chat`, {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await res.json();
+
+    addMessage(data.response, "bot");
+
+  } catch (err) {
+    addMessage("Error connecting to server", "bot");
+  }
+
+  document.getElementById("msg").value = "";
 }
 
-function addUser(text, f) {
-  const d = document.createElement('div');
-  d.className = 'msg user';
-  d.innerHTML = `<div class="av user">Me</div><div class="bbl"><img class="thumb-sm" src="${URL.createObjectURL(f)}"/>${text}</div>`;
-  chat.appendChild(d); chat.scrollTop = chat.scrollHeight;
+function addMessage(text, type) {
+  const div = document.createElement("div");
+  div.className = "msg " + type;
+  div.innerText = text;
+  document.getElementById("chat").appendChild(div);
 }
 
-function addBot(html) {
-  const d = document.createElement('div');
-  d.className = 'msg bot';
-  d.innerHTML = `<div class="av bot"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14.5h-2v-5H9V9.5h4v7zm-1-9c-.83 0-1.5-.67-1.5-1.5S11.17 4.5 12 4.5s1.5.67 1.5 1.5S12.83 7.5 12 7.5z" fill="white"/></svg></div><div class="bbl">${html}</div>`;
-  chat.appendChild(d); chat.scrollTop = chat.scrollHeight;
-}
-
-let tc = 0;
-function addTyping() {
-  const id = `t${++tc}`;
-  const d = document.createElement('div');
-  d.className = 'msg bot'; d.id = id;
-  d.innerHTML = `<div class="av bot"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14.5h-2v-5H9V9.5h4v7zm-1-9c-.83 0-1.5-.67-1.5-1.5S11.17 4.5 12 4.5s1.5.67 1.5 1.5S12.83 7.5 12 7.5z" fill="white"/></svg></div><div class="typing-bbl"><span></span><span></span><span></span></div>`;
-  chat.appendChild(d); chat.scrollTop = chat.scrollHeight;
-  return id;
-}
-function removeTyping(id) { document.getElementById(id)?.remove(); }
 </script>
+
 </body>
 </html>
