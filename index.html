@@ -1,84 +1,99 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>VisualMind</title>
+    <title>VisualMind</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #0f172a;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
-<style>
-body { font-family: Arial; background:#f4f7fb; margin:0; padding:0; }
-.container { max-width:700px; margin:auto; padding:20px; }
-.chat { margin-top:20px; }
-.msg { margin:10px 0; }
-.user { text-align:right; }
-.bot { text-align:left; }
-button { padding:10px; }
-</style>
+        .container {
+            width: 500px;
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 8px;
+            border: none;
+        }
+
+        button {
+            background: #3b82f6;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2563eb;
+        }
+
+        #response {
+            margin-top: 20px;
+            padding: 10px;
+            background: #334155;
+            border-radius: 8px;
+        }
+    </style>
 </head>
 
 <body>
-
 <div class="container">
+    <h1>🧠 VisualMind</h1>
 
-<h2>VisualMind</h2>
+    <input type="file" id="image">
+    <input type="text" id="message" placeholder="Ask something about the image...">
+    <button onclick="send()">Send</button>
 
-<input type="file" id="file" accept="image/*"><br><br>
-
-<input type="text" id="msg" placeholder="Ask something..." style="width:80%">
-<button onclick="sendMsg()">Send</button>
-
-<div class="chat" id="chat"></div>
-
+    <div id="response">Response will appear here...</div>
 </div>
 
 <script>
+async function send() {
+    const fileInput = document.getElementById("image");
+    const message = document.getElementById("message").value;
+    const responseBox = document.getElementById("response");
 
-const API = ""; // ✅ FIXED (IMPORTANT)
+    if (!fileInput.files[0]) {
+        alert("Upload an image first");
+        return;
+    }
 
-let selectedFile = null;
+    responseBox.innerText = "Thinking...";
 
-document.getElementById("file").addEventListener("change", (e)=>{
-  selectedFile = e.target.files[0];
-});
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+    formData.append("message", message);
 
-async function sendMsg() {
-  const text = document.getElementById("msg").value;
+    try {
+        const res = await fetch("/chat", {
+            method: "POST",
+            body: formData
+        });
 
-  if (!selectedFile) {
-    alert("Upload image first");
-    return;
-  }
+        const data = await res.json();
 
-  addMessage(text, "user");
+        responseBox.innerText = data.response || "No response";
 
-  const formData = new FormData();
-  formData.append("file", selectedFile);
-  formData.append("message", text);
-
-  try {
-    const res = await fetch(`${API}/chat`, {
-      method: "POST",
-      body: formData
-    });
-
-    const data = await res.json();
-
-    addMessage(data.response, "bot");
-
-  } catch (err) {
-    addMessage("Error connecting to server", "bot");
-  }
-
-  document.getElementById("msg").value = "";
+    } catch (err) {
+        responseBox.innerText = "Error connecting to server";
+    }
 }
-
-function addMessage(text, type) {
-  const div = document.createElement("div");
-  div.className = "msg " + type;
-  div.innerText = text;
-  document.getElementById("chat").appendChild(div);
-}
-
 </script>
 
 </body>
