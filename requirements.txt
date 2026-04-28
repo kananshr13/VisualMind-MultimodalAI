@@ -2,6 +2,6 @@ fastapi
 uvicorn
 python-multipart
 pillow
-torch==2.1.0
 transformers==4.37.0
 tokenizers==0.15.2
+torch
