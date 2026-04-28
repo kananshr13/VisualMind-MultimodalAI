@@ -33,9 +33,14 @@ async def chat(file: UploadFile = File(...), message: str = Form(...)):
 
         result = response.json()
 
-        caption = result[0]["generated_text"]
+        # 🔥 HANDLE ALL CASES
+        if isinstance(result, dict) and "error" in result:
+            return {"response": f"HF Error: {result['error']}"}
 
-        return {"response": caption}
+        if isinstance(result, list):
+            return {"response": result[0]["generated_text"]}
+
+        return {"response": "Unexpected response from model"}
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
