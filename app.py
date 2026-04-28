@@ -1,12 +1,12 @@
-from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from PIL import Image
-from transformers import pipeline
-import io
+import requests
+import os
 
 app = FastAPI()
 
+# Allow frontend requests
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,27 +15,38 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ✅ lightweight model (works on Render free tier)
-captioner = pipeline("image-to-text", model="Salesforce/blip-image-captioning-base")
+# HuggingFace API
+HF_API_URL = "https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-base"
+HF_TOKEN = os.getenv("HF_TOKEN")  # from Render env
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
+headers = {
+    "Authorization": f"Bearer {HF_TOKEN}"
+}
+
+
+def query_image(image_bytes):
+    response = requests.post(
+        HF_API_URL,
+        headers=headers,
+        data=image_bytes
+    )
+    return response.json()
+
 
 @app.post("/chat")
-async def chat(file: UploadFile = File(...), message: str = Form(...)):
+async def chat(file: UploadFile = File(...)):
     try:
         image_bytes = await file.read()
-        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
-        result = captioner(image)[0]["generated_text"]
+        result = query_image(image_bytes)
 
-        if "describe" in message.lower():
-            response = result
+        # Handle API response safely
+        if isinstance(result, list):
+            caption = result[0]["generated_text"]
         else:
-            response = f"I see: {result}"
+            caption = "Error: " + str(result)
 
-        return {"response": response}
+        return {"response": caption}
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
