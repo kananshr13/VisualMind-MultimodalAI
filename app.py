@@ -1,12 +1,13 @@
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 import requests
 import os
 
 app = FastAPI()
 
-# Allow frontend requests
+# Allow frontend access
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,7 +18,7 @@ app.add_middleware(
 
 # HuggingFace API
 HF_API_URL = "https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-base"
-HF_TOKEN = os.getenv("HF_TOKEN")  # from Render env
+HF_TOKEN = os.getenv("HF_TOKEN")
 
 headers = {
     "Authorization": f"Bearer {HF_TOKEN}"
@@ -37,10 +38,8 @@ def query_image(image_bytes):
 async def chat(file: UploadFile = File(...)):
     try:
         image_bytes = await file.read()
-
         result = query_image(image_bytes)
 
-        # Handle API response safely
         if isinstance(result, list):
             caption = result[0]["generated_text"]
         else:
@@ -50,3 +49,11 @@ async def chat(file: UploadFile = File(...)):
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+# 👇 ADD THIS PART (serves your frontend)
+app.mount("/static", StaticFiles(directory="."), name="static")
+
+@app.get("/")
+async def serve_frontend():
+    return FileResponse("index.html")
