@@ -88,10 +88,15 @@ async function send() {
 
         const data = await res.json();
 
-        responseBox.innerText = data.response || "No response";
+        console.log(data);  // 👈 DEBUG
+
+        responseBox.innerText =
+            data.response ||
+            data.error ||
+            "No response from server";
 
     } catch (err) {
-        responseBox.innerText = "Error connecting to server";
+        responseBox.innerText = "Request failed: " + err;
     }
 }
 </script>
