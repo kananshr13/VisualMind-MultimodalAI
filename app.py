@@ -1,15 +1,18 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.responses import JSONResponse, HTMLResponse
-from transformers import pipeline
-from PIL import Image
-import io
+import requests
+import os
 
 app = FastAPI()
 
-captioner = pipeline(
-    "image-to-text",
-    model="Salesforce/blip-image-captioning-base"
-)
+HF_API_TOKEN = os.getenv("HF_API_TOKEN")
+
+API_URL = "https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-base"
+
+headers = {
+    "Authorization": f"Bearer {HF_API_TOKEN}"
+}
+
 
 @app.get("/")
 def home():
@@ -20,10 +23,16 @@ def home():
 @app.post("/chat")
 async def chat(file: UploadFile = File(...), message: str = Form(...)):
     try:
-        contents = await file.read()
-        image = Image.open(io.BytesIO(contents))
+        image_bytes = await file.read()
 
-        result = captioner(image)
+        response = requests.post(
+            API_URL,
+            headers=headers,
+            data=image_bytes
+        )
+
+        result = response.json()
+
         caption = result[0]["generated_text"]
 
         return {"response": caption}
